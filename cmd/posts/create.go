@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Alexis Bouchez <alexbcz@proton.me> (https://alexisbouchez.com), MIT License
 package posts
 
 import (
@@ -7,6 +8,7 @@ import (
 	_ "image/png"  // Support png format
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/alexisbcz/yabc/internal/bluesky"
 	"github.com/charmbracelet/huh"
@@ -37,14 +39,38 @@ Example usage:
 	yabc posts create --text "Check out this photo" --image path/to/image.jpg`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if text == "" && imageFile == "" {
-				err := huh.NewInput().
-					Title("Type text content for the post").
-					Placeholder("Hello world!").
-					Value(&text).
-					Run()
-				if err != nil {
+				var hashtagInput string
+
+				// Create a form with text and hashtags
+				form := huh.NewForm(
+					huh.NewGroup(
+						huh.NewInput().
+							Title("Type text content for the post").
+							Placeholder("Hello world!").
+							Value(&text),
+						huh.NewInput().
+							Title("Add hashtags (comma-separated)").
+							Placeholder("coding,golang,tech").
+							Value(&hashtagInput),
+						huh.NewFilePicker().
+							Title("Select an image (optional)").
+							Picking(true).
+							Value(&imageFile).
+							AllowedTypes([]string{".jpg", ".jpeg", ".png", ".gif"}),
+					),
+				)
+
+				if err := form.Run(); err != nil {
 					slog.Error("Failed to get user input", "error", err)
 					os.Exit(1)
+				}
+
+				// Process hashtags
+				if hashtagInput != "" {
+					hashtags = strings.Split(hashtagInput, ",")
+					for i, tag := range hashtags {
+						hashtags[i] = strings.TrimSpace(tag)
+					}
 				}
 			}
 

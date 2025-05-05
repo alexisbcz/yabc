@@ -1,3 +1,4 @@
+// Copyright (c) 2025 Alexis Bouchez <alexbcz@proton.me> (https://alexisbouchez.com), MIT License
 package bluesky
 
 import (
